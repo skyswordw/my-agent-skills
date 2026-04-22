@@ -20,8 +20,10 @@ Use `scripts/msi-repair-query.sh` for MSI China repair-order lookups. Prefer thi
 2. Let the script download the captcha image and open it locally when possible.
 3. Show the captcha to the user. The answer may come from:
    - manual reading by the user
+   - direct agent judgment when the captcha is a clearly legible simple arithmetic expression
    - auxiliary recognition used only as a suggestion
-4. Before submission, ask the user to confirm the final captcha answer or override it. Do not submit an unconfirmed answer.
+4. Before submission, ask the user to confirm the final captcha answer or override it unless the captcha is a clearly legible simple arithmetic expression and the agent can determine the answer with high confidence.
+   In that narrow case, the agent may compute and submit the answer directly.
    If the shell command is run with `--answer`, treat that explicit CLI value as already confirmed by the caller and do not prompt again.
 5. Send the confirmed answer back to the running command.
 6. Report the result in Chinese:
@@ -32,7 +34,9 @@ Use `scripts/msi-repair-query.sh` for MSI China repair-order lookups. Prefer thi
 
 ## Guardrails
 
-- The final captcha answer must be confirmed or overridden by the user before submission.
+- For captchas that are not clearly legible simple arithmetic expressions, the final captcha answer must be confirmed or overridden by the user before submission.
+- If the captcha is a clearly legible simple arithmetic expression and the agent can determine the answer with high confidence, the agent may submit it directly without an extra confirmation step.
+- If the captcha is ambiguous, visually noisy, partially obscured, or the agent has low confidence in the arithmetic reading, stop and ask the user to confirm or override it.
 - An explicit CLI `--answer` is the non-interactive boundary for an already confirmed captcha answer.
 - If the site adds another verification step, blocks access, or the HTML shape changes enough that the script cannot extract `_token`, stop and explain the blocker plainly.
 - If the returned structure no longer matches the parsing assumptions, including when the success-page workflow widget exists but no highlighted `active` stage can be parsed, stop instead of guessing.

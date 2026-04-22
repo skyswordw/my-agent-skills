@@ -25,6 +25,8 @@ Request hints that currently work:
 ## Captcha policy
 
 - The captcha is visible to the human user and the submitted answer must be user-confirmed.
+- Narrow exception: if the captcha is a clearly legible simple arithmetic expression and the agent can determine the answer with high confidence, the agent may compute and submit it directly.
+- If the arithmetic reading is ambiguous or low confidence, fall back to explicit user confirmation.
 - Passing `--answer` to the shell script is the explicit non-interactive path for a caller-confirmed captcha answer.
 - The answer may be read manually or suggested by auxiliary recognition, but auxiliary recognition is optional and not authoritative.
 - Do not try to bypass site verification or submit an unconfirmed guess.
