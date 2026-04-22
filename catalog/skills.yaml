@@ -1,0 +1,9 @@
+skills:
+  - name: msi-repair-status
+    title: MSI Repair Status
+    path: skills/msi-repair-status
+    summary: Query MSI China repair progress with an RMA number and product serial number.
+  - name: captcha-auto-skill
+    title: Captcha Auto Skill
+    path: skills/captcha-auto-skill
+    summary: Solve and submit captchas with local OCR first and a default DashScope fallback.

@@ -1,0 +1,40 @@
+{
+  "fetchedAtEpoch": 1776858438,
+  "items": [
+    {
+      "provider": "dashscope",
+      "model": "qwen3.6-plus",
+      "source": "https://help.aliyun.com/zh/model-studio/vision-model",
+      "fetchedAt": "2026-04-22T11:47:18.386Z",
+      "supportsVision": true
+    },
+    {
+      "provider": "dashscope",
+      "model": "qwen3.6-flash",
+      "source": "https://help.aliyun.com/zh/model-studio/vision-model",
+      "fetchedAt": "2026-04-22T11:47:18.386Z",
+      "supportsVision": true
+    },
+    {
+      "provider": "dashscope",
+      "model": "qwen-vl-ocr",
+      "source": "https://help.aliyun.com/zh/model-studio/vision-model",
+      "fetchedAt": "2026-04-22T11:47:18.386Z",
+      "supportsVision": true
+    },
+    {
+      "provider": "dashscope",
+      "model": "qwen3.6-plus-2026-04-02",
+      "source": "https://help.aliyun.com/zh/model-studio/vision-model",
+      "fetchedAt": "2026-04-22T11:47:18.386Z",
+      "supportsVision": true
+    },
+    {
+      "provider": "dashscope",
+      "model": "qwen3.6-flash-2026-04-16",
+      "source": "https://help.aliyun.com/zh/model-studio/vision-model",
+      "fetchedAt": "2026-04-22T11:47:18.386Z",
+      "supportsVision": true
+    }
+  ]
+}

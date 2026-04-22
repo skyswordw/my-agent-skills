@@ -1,0 +1,12 @@
+{
+  "data": [
+    { "id": "Qwen/Qwen3.5-397B-A17B", "created": 1766188800, "owned_by": "system" },
+    { "id": "Qwen/Qwen3-VL-8B-Instruct", "created": 1766188800, "owned_by": "system" },
+    { "id": "Qwen/Qwen3-VL-235B-A22B-Instruct", "created": 1766188800, "owned_by": "system" },
+    { "id": "OpenGVLab/InternVL3_5-241B-A28B", "created": 1766188800, "owned_by": "system" },
+    { "id": "PaddlePaddle/ERNIE-4.5-VL-28B-A3B-PT", "created": 1766188800, "owned_by": "system" },
+    { "id": "Vendor/Fresh-Vision-99B", "created": 1766188800, "owned_by": "system" },
+    { "id": "Qwen/Qwen3.5-35B-A3B", "created": 1766188800, "owned_by": "system" },
+    { "id": "deepseek-ai/DeepSeek-V3.2", "created": 1766188800, "owned_by": "system" }
+  ]
+}

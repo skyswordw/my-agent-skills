@@ -1,0 +1,4 @@
+interface:
+  display_name: "MSI Repair Status"
+  short_description: "Query, interpret, compare, and remind for MSI China repairs"
+  default_prompt: "Use $msi-repair-status to query MSI China repair progress for an RMA and serial number, interpret the current status, compare it with the last successful result, and include the exact reminder wording when user action is implied. If a captcha answer is needed, it may come from manual reading or auxiliary recognition, but the final answer must be confirmed or overridden by the user before submission. If the shell script is run with --answer, treat that explicit CLI value as already confirmed by the caller. Stop and explain the blocker if the site adds extra verification, blocks access, or the site structure changes enough that parsing assumptions no longer hold, including when a successful HTML result no longer yields the expected workflow stage."
