@@ -1,0 +1,13 @@
+SKILL.md
+agents/openai.yaml
+scripts/init-course.sh
+scripts/build-course.sh
+runtime/styles.css
+runtime/main.js
+runtime/templates/_base.html
+runtime/templates/_footer.html
+references/content-philosophy.md
+references/design-system.md
+references/gotchas.md
+references/interactive-elements.md
+references/module-brief-template.md

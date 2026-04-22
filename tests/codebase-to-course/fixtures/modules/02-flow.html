@@ -1,0 +1,96 @@
+<section class="module" id="module-flow" data-title="Conversation between the browser and the router">
+  <p class="course-section__eyebrow">Module 2</p>
+  <h2>Conversation between the browser and the router</h2>
+  <p>The event loop makes the handoff between the UI, router, and store feel immediate.</p>
+
+  <div data-chat-demo data-chat-interval="1200">
+    <div data-chat-thread>
+      <article data-chat-message data-speaker="guide">The button emits an increment action.</article>
+      <article data-chat-message data-speaker="system">The router checks that the action name is allowed.</article>
+      <article data-chat-message data-speaker="guide">The store updates the count and hands the new value back.</article>
+    </div>
+    <div class="course-controls">
+      <button type="button" data-chat-play>Play</button>
+      <button type="button" data-chat-reset>Replay</button>
+      <span data-chat-status>Ready</span>
+    </div>
+  </div>
+
+  <div data-flow-demo data-default-step="0" data-flow-intro="Trace the action hop by hop.">
+    <div class="course-grid">
+      <div data-flow-item="button">Button</div>
+      <div data-flow-item="router">Router</div>
+      <div data-flow-item="store">Store</div>
+    </div>
+    <div data-flow-step data-flow-targets="button" data-flow-caption="The user clicks the button.">Intent starts at the UI.</div>
+    <div data-flow-step data-flow-targets="button router" data-flow-caption="The action moves into the router.">The router validates the request.</div>
+    <div data-flow-step data-flow-targets="router store" data-flow-caption="The store performs the state update.">State changes now happen.</div>
+    <div class="course-controls">
+      <button type="button" data-flow-prev>Back</button>
+      <button type="button" data-flow-next>Next Step</button>
+      <button type="button" data-flow-play>Play All</button>
+      <button type="button" data-flow-reset>Restart</button>
+      <p data-flow-caption-output>Trace the action hop by hop.</p>
+    </div>
+  </div>
+
+  <div data-match>
+    <div data-match-bank>
+      <button type="button" data-match-token="button">Button</button>
+      <button type="button" data-match-token="router">Router</button>
+      <button type="button" data-match-token="store">Store</button>
+    </div>
+    <div class="course-grid">
+      <div data-match-slot data-accept="router">
+        <strong>Routes each action to the right handler</strong>
+        <span data-match-placeholder>Drop here</span>
+      </div>
+      <div data-match-slot data-accept="store">
+        <strong>Commits the state change</strong>
+        <span data-match-placeholder>Drop here</span>
+      </div>
+    </div>
+    <div class="course-controls">
+      <button type="button" data-match-check>Check Matches</button>
+      <button type="button" data-match-reset>Reset</button>
+      <p data-match-feedback></p>
+    </div>
+  </div>
+
+  <div data-layer-demo data-hidden-layers="js" data-layer-summary-prefix="Visible layers">
+    <div class="course-controls">
+      <button type="button" data-layer-toggle="html">HTML</button>
+      <button type="button" data-layer-toggle="css">CSS</button>
+      <button type="button" data-layer-toggle="js">JS</button>
+    </div>
+    <div data-layer="html">Markup gives the button structure.</div>
+    <div data-layer="css">Styles make the affordance readable.</div>
+    <div data-layer="js">Behavior wires the click to the router.</div>
+    <p data-layer-summary></p>
+  </div>
+
+  <div data-scenario-quiz data-scenario-answer="store" data-scenario-mode="submit">
+    <h3>The click fires, but the number never changes. Which actor do you inspect next?</h3>
+    <div class="course-controls">
+      <button type="button" data-scenario-option="router">The router</button>
+      <button type="button" data-scenario-option="store">The store</button>
+      <button type="button" data-scenario-option="readme">The README</button>
+    </div>
+    <div data-scenario-feedback></div>
+    <div data-scenario-panel="router" hidden>The router matters when actions are rejected before state work begins.</div>
+    <div data-scenario-panel="store" hidden>Correct. If the click reached the router, the next likely issue is the state update.</div>
+    <div data-scenario-panel="readme" hidden>The docs may describe the flow, but they do not implement it.</div>
+    <div class="course-controls">
+      <button type="button" data-scenario-submit>Check</button>
+      <button type="button" data-scenario-reset>Reset</button>
+    </div>
+  </div>
+
+  <div data-flow-diagram>
+    <div data-flow-card>Button</div>
+    <div data-flow-arrow>→</div>
+    <div data-flow-card>Router</div>
+    <div data-flow-arrow>→</div>
+    <div data-flow-card>Store</div>
+  </div>
+</section>

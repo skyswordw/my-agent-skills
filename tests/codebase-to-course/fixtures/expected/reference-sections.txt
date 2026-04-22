@@ -1,0 +1,17 @@
+Code to English Translation Block
+Multiple-Choice Quiz
+Drag-and-Drop Matching
+Group Chat Animation
+Message or Data Flow Animation
+Interactive Architecture Diagram
+Layer Toggle Demo
+Spot-the-Bug Challenge
+Scenario Quiz
+Callout Boxes
+Pattern and Feature Cards
+Flow Diagrams
+Permission and Config Badges
+Glossary Tooltips
+Visual File Tree
+Icon-Label Rows
+Numbered Step Cards

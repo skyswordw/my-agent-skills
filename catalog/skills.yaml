@@ -7,3 +7,7 @@ skills:
     title: Captcha Auto Skill
     path: skills/captcha-auto-skill
     summary: Solve and submit captchas with local OCR first and a default DashScope fallback.
+  - name: codebase-to-course
+    title: Codebase to Course
+    path: skills/codebase-to-course
+    summary: Turn a local repository into a multi-file offline course for non-technical learners.

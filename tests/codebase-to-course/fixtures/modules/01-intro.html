@@ -1,0 +1,76 @@
+<section class="module" id="module-intro" data-title="From click to cache">
+  <p class="course-section__eyebrow">Module 1</p>
+  <h2>From click to cache</h2>
+  <p>
+    The
+    <span data-glossary>
+      <button type="button" data-glossary-trigger>router</button>
+      <span data-glossary-tooltip hidden>The module that validates an action and forwards it to the right handler.</span>
+    </span>
+    is the first stop after the UI emits intent.
+  </p>
+
+  <aside data-callout data-tone="info">
+    <strong>Why this matters</strong>
+    <p>When learners can name the decision point, they can ask an agent for smaller and safer changes.</p>
+  </aside>
+
+  <div data-icon-row>
+    <div data-icon-mark>1</div>
+    <div data-icon-body>Trace the action from the button to the file that decides whether it is valid.</div>
+  </div>
+
+  <div data-translation-block data-default-view="split">
+    <div data-translation-toolbar>
+      <button type="button" data-translation-toggle="code">Code</button>
+      <button type="button" data-translation-toggle="plain">English</button>
+      <button type="button" data-translation-toggle="split">Both</button>
+    </div>
+    <div data-translation-panels>
+      <article data-translation-panel="code">
+        <pre><code>export function routeAction(action, handler) {
+  if (action !== "increment") {
+    throw new Error("Unknown action");
+  }
+  return handler();
+}</code></pre>
+      </article>
+      <article data-translation-panel="plain">
+        <p>The router rejects unknown actions before state changes happen.</p>
+      </article>
+    </div>
+  </div>
+
+  <div data-quiz data-quiz-answer="router" data-quiz-mode="submit">
+    <h3>Which file should you inspect first when a new action name needs to be accepted?</h3>
+    <div class="course-controls">
+      <button type="button" data-quiz-option="store"><code>store.js</code></button>
+      <button type="button" data-quiz-option="router"><code>router.js</code></button>
+      <button type="button" data-quiz-option="readme"><code>README.md</code></button>
+    </div>
+    <div data-quiz-feedback></div>
+    <div data-quiz-response="store" hidden>The store updates state after the router accepts the action.</div>
+    <div data-quiz-response="router" hidden>Correct. The router owns the allow-list for actions.</div>
+    <div data-quiz-response="readme" hidden>Documentation can explain the flow, but it does not enforce it.</div>
+    <div class="course-controls">
+      <button type="button" data-quiz-submit>Check Answers</button>
+      <button type="button" data-quiz-reset>Reset</button>
+    </div>
+  </div>
+
+  <div data-pattern-grid>
+    <article data-pattern-card>
+      <h3>Routing</h3>
+      <p>One place decides where work goes.</p>
+    </article>
+    <article data-feature-card>
+      <h3>Guard rails</h3>
+      <p>Invalid actions fail fast before they corrupt state.</p>
+    </article>
+  </div>
+
+  <div class="course-controls">
+    <span data-badge-kind="config" data-badge-state="required">router.js</span>
+    <span data-badge-kind="permission" data-badge-state="optional">No write access required</span>
+  </div>
+</section>

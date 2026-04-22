@@ -1,0 +1,70 @@
+<section class="module" id="module-architecture" data-title="The whole mini-app at a glance">
+  <p class="course-section__eyebrow">Module 3</p>
+  <h2>The whole mini-app at a glance</h2>
+  <p>A system map helps learners decide where to ask for a change instead of poking random files.</p>
+
+  <div data-architecture data-default-node="router">
+    <div class="course-controls">
+      <button type="button" data-architecture-focus="button">Button</button>
+      <button type="button" data-architecture-focus="router">Router</button>
+      <button type="button" data-architecture-focus="store">Store</button>
+    </div>
+    <div class="course-grid">
+      <button type="button" data-architecture-node="button" data-links="router">Button</button>
+      <button type="button" data-architecture-node="router" data-links="button store">Router</button>
+      <button type="button" data-architecture-node="store" data-links="router">Store</button>
+    </div>
+    <div data-architecture-panel="button">Collects the user action and emits intent.</div>
+    <div data-architecture-panel="router" hidden>Validates the action and forwards only known work.</div>
+    <div data-architecture-panel="store" hidden>Applies the state update and returns the new value.</div>
+  </div>
+
+  <div data-file-tree>
+    <ul>
+      <li data-file-node data-kind="folder">src/
+        <ul>
+          <li data-file-node data-kind="file">index.js</li>
+          <li data-file-node data-kind="file">router.js</li>
+          <li data-file-node data-kind="file">store.js</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div data-step-cards>
+    <article data-step-card>
+      <strong>User clicks the button</strong>
+      <p>The UI forwards intent as an action.</p>
+    </article>
+    <article data-step-card>
+      <strong>Router validates the action</strong>
+      <p>The app rejects unknown work before state changes happen.</p>
+    </article>
+    <article data-step-card>
+      <strong>Store updates the count</strong>
+      <p>The next render receives the new value.</p>
+    </article>
+  </div>
+
+  <div data-bug-hunt data-bug-answer="line-2">
+    <h3>Find the bug in this variant:</h3>
+    <pre><code>export function routeAction(action, handler) {
+  if (action = "increment") {
+    return handler();
+  }
+}</code></pre>
+    <div class="course-controls">
+      <button type="button" data-bug-choice="line-1">Line 1</button>
+      <button type="button" data-bug-choice="line-2">Line 2</button>
+      <button type="button" data-bug-choice="line-3">Line 3</button>
+    </div>
+    <div class="course-controls">
+      <button type="button" data-bug-submit>Check</button>
+      <button type="button" data-bug-reset>Reset</button>
+      <p data-bug-feedback></p>
+    </div>
+    <div data-bug-panel="line-1" hidden>The function signature is fine.</div>
+    <div data-bug-panel="line-2" hidden>Correct. Assignment replaces comparison, so the condition is wrong.</div>
+    <div data-bug-panel="line-3" hidden>The return line is only dangerous because the condition above is broken.</div>
+  </div>
+</section>

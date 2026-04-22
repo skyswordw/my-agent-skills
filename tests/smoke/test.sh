@@ -55,11 +55,20 @@ PY
 
 bash "$INSTALL_SCRIPT" msi-repair-status "$TARGET_PROJECT"
 bash "$INSTALL_SCRIPT" captcha-auto-skill "$TARGET_PROJECT"
+bash "$INSTALL_SCRIPT" codebase-to-course "$TARGET_PROJECT"
 
 assert_file "$TARGET_PROJECT/.codex/skills/msi-repair-status/SKILL.md"
 assert_file "$TARGET_PROJECT/.codex/skills/msi-repair-status/agents/openai.yaml"
 assert_file "$TARGET_PROJECT/.codex/skills/captcha-auto-skill/SKILL.md"
 assert_file "$TARGET_PROJECT/.codex/skills/captcha-auto-skill/agents/openai.yaml"
+assert_file "$TARGET_PROJECT/.codex/skills/codebase-to-course/SKILL.md"
+assert_file "$TARGET_PROJECT/.codex/skills/codebase-to-course/agents/openai.yaml"
+assert_file "$TARGET_PROJECT/.codex/skills/codebase-to-course/scripts/init-course.sh"
+assert_file "$TARGET_PROJECT/.codex/skills/codebase-to-course/scripts/build-course.sh"
+assert_file "$TARGET_PROJECT/.codex/skills/codebase-to-course/runtime/templates/_base.html"
+assert_file "$TARGET_PROJECT/.codex/skills/codebase-to-course/runtime/templates/_footer.html"
+assert_file "$TARGET_PROJECT/.codex/skills/codebase-to-course/runtime/styles.css"
+assert_file "$TARGET_PROJECT/.codex/skills/codebase-to-course/runtime/main.js"
 
 assert_not_exists "$TARGET_PROJECT/.codex/skills/captcha-auto-skill/node_modules"
 assert_not_exists "$TARGET_PROJECT/.codex/skills/captcha-auto-skill/eng.traineddata"
