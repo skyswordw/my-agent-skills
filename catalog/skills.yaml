@@ -11,3 +11,7 @@ skills:
     title: Codebase to Course
     path: skills/codebase-to-course
     summary: Turn a local repository into a multi-file offline course for non-technical learners.
+  - name: express-tracking
+    title: Express Tracking
+    path: skills/express-tracking
+    summary: Track courier shipments with Kuaidi100 and return Chinese logistics summaries.

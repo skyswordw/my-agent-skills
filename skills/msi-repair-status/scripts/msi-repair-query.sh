@@ -439,6 +439,127 @@ EOF
   fi
 }
 
+extract_tracking_number() {
+  python3 -c '
+import html
+import re
+import sys
+
+def clean(fragment):
+    fragment = re.sub(r"(?is)<[^>]+>", " ", fragment)
+    fragment = html.unescape(fragment)
+    return re.sub(r"\s+", " ", fragment).strip()
+
+data = sys.stdin.read()
+if not data:
+    raise SystemExit(0)
+
+match = re.search(r"(?is)<h3[^>]*>\s*寄送信息\s*</h3>(.*?)(?=<h3\b|$)", data)
+if not match:
+    raise SystemExit(0)
+
+section = match.group(1)
+headers = []
+cells = []
+seen_data_row = False
+pattern = re.compile(r"(?is)<div[^>]*class=\"[^\"]*\b(th|td)\b[^\"]*\"[^>]*>(.*?)</div>")
+
+for kind, fragment in pattern.findall(section):
+    text = clean(fragment)
+    if kind == "th" and not seen_data_row:
+        headers.append(text)
+        continue
+    if kind == "td":
+        seen_data_row = True
+        cells.append(text)
+        if headers and len(cells) >= len(headers):
+            break
+
+if not headers or not cells:
+    raise SystemExit(0)
+
+try:
+    tracking_index = headers.index("寄送单号")
+except ValueError:
+    raise SystemExit(0)
+
+if tracking_index < len(cells):
+    tracking_no = cells[tracking_index].strip()
+    if tracking_no:
+        print(tracking_no, end="")
+' || true
+}
+
+find_express_skill_dir() {
+  local candidate
+  for candidate in \
+    "$SKILL_DIR/../express-tracking" \
+    "$PWD/.codex/skills/express-tracking" \
+    "$HOME/.codex/skills/express-tracking"
+  do
+    if [[ -f "$candidate/scripts/run.mjs" ]]; then
+      (
+        cd "$candidate" >/dev/null 2>&1 &&
+          pwd
+      )
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+print_express_tracking_summary() {
+  local tracking_no="$1"
+  local express_skill_dir=""
+  local express_json=""
+  local express_summary=""
+
+  echo "寄送单号：$tracking_no"
+
+  command -v node >/dev/null 2>&1 || return 0
+  express_skill_dir="$(find_express_skill_dir)" || return 0
+
+  if ! express_json="$(node "$express_skill_dir/scripts/run.mjs" --number="$tracking_no" --json 2>/dev/null)"; then
+    return 0
+  fi
+
+  if ! express_summary="$(python3 -c '
+import json
+import sys
+
+try:
+    payload = json.load(sys.stdin)
+except json.JSONDecodeError:
+    raise SystemExit(1)
+
+lines = []
+state = payload.get("state") or {}
+if not isinstance(state, dict):
+    state = {}
+state_label = str(state.get("label", payload.get("stateLabel", ""))).strip()
+latest = payload.get("latestEvent") or payload.get("latest") or {}
+if not isinstance(latest, dict):
+    latest = {}
+if state_label:
+    lines.append(f"当前物流状态：{state_label}")
+time = str(latest.get("time", "")).strip()
+if time:
+    lines.append(f"最新时间：{time}")
+context = str(latest.get("context", "")).strip()
+if context:
+    lines.append(f"最新轨迹：{context}")
+print("\n".join(lines), end="")
+' <<< "$express_json" 2>/dev/null)"; then
+    return 0
+  fi
+
+  if [[ -n "$express_summary" ]]; then
+    echo "物流补充："
+    echo "$express_summary"
+  fi
+}
+
 change_summary() {
   local previous="${1:-}"
   local current="${2:-}"
@@ -565,6 +686,7 @@ main() {
   local current_snapshot=""
   local previous_snapshot=""
   local active_stage=""
+  local tracking_no=""
   local state_text_file
   local state_snapshot_file
 
@@ -641,6 +763,11 @@ main() {
   fi
 
   print_result "$result_text" "$previous_snapshot" "$active_stage" "$current_snapshot"
+  tracking_no="$(extract_tracking_number < "$raw_result")"
+  if [[ -n "$tracking_no" ]]; then
+    echo
+    print_express_tracking_summary "$tracking_no"
+  fi
   printf '%s\n' "$result_text" > "$state_text_file"
   printf '%s\n' "$current_snapshot" > "$state_snapshot_file"
   echo

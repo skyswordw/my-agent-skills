@@ -153,6 +153,12 @@ if inactive_stage_output="$(extract_active_stage < "$FIXTURE_DIR/result_inactive
   fail "extract_active_stage should not false-match inactive workflow classes"
 fi
 
+tracking_number="$(extract_tracking_number < "$FIXTURE_DIR/result_live_with_tracking.html")"
+assert_eq "SF123456789CN" "$tracking_number" "extract_tracking_number should parse the shipment number from the shipping section"
+
+missing_tracking_number="$(extract_tracking_number < "$FIXTURE_DIR/result_ok_with_stage.html")"
+assert_eq "" "$missing_tracking_number" "extract_tracking_number should stay empty when MSI does not expose a shipment number"
+
 json_error_status="$(extract_json_status < "$FIXTURE_DIR/result_error_captcha.json")"
 assert_eq "error" "$json_error_status" "extract_json_status should detect JSON error responses"
 
@@ -291,7 +297,7 @@ validate_detail_request() {
 }
 
 case "$call_count:$mode" in
-  1:success|1:success_changed|1:success_live|1:success_unrelated_active|1:error|1:malformed|1:stage_drift)
+  1:success|1:success_changed|1:success_live|1:success_tracking|1:success_unrelated_active|1:error|1:malformed|1:stage_drift)
     [[ "$url" == "$inquiry_url" ]] || {
       echo "unexpected inquiry URL: $url" >&2
       exit 1
@@ -303,7 +309,7 @@ case "$call_count:$mode" in
     printf '%s' "$cookie_write" > "$cookie_state_file"
     cp "$fixture_dir/inquiry_page.html" "$output_path"
     ;;
-  2:success|2:success_changed|2:success_live|2:success_unrelated_active|2:error|2:malformed|2:stage_drift)
+  2:success|2:success_changed|2:success_live|2:success_tracking|2:success_unrelated_active|2:error|2:malformed|2:stage_drift)
     expected_cookie="$(cat "$cookie_state_file")"
     [[ "$url" == "$captcha_url_prefix"* ]] || {
       echo "unexpected captcha URL: $url" >&2
@@ -326,6 +332,10 @@ case "$call_count:$mode" in
   3:success_live)
     validate_detail_request
     cp "$fixture_dir/result_ok_live_style.html" "$output_path"
+    ;;
+  3:success_tracking)
+    validate_detail_request
+    cp "$fixture_dir/result_live_with_tracking.html" "$output_path"
     ;;
   3:success_unrelated_active)
     validate_detail_request
@@ -359,6 +369,58 @@ call_file="${MOCK_OPEN_CALL_FILE:?}"
 printf '%s\n' "$*" >> "$call_file"
 EOF
 chmod +x "$mock_bin_dir/open"
+
+cat > "$mock_bin_dir/node" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+call_file="${MOCK_NODE_CALL_FILE:?}"
+mode="${MOCK_NODE_MODE:?}"
+expected_script="${MOCK_NODE_EXPECTED_SCRIPT:?}"
+expected_number="${MOCK_NODE_EXPECTED_NUMBER:?}"
+
+printf '%s\n' "$*" >> "$call_file"
+
+[[ "${1:-}" == "$expected_script" ]] || {
+  echo "unexpected node script: ${1:-}" >&2
+  exit 1
+}
+
+found_json=0
+found_number=0
+for arg in "$@"; do
+  if [[ "$arg" == "--json" ]]; then
+    found_json=1
+  fi
+  if [[ "$arg" == "--number=$expected_number" ]]; then
+    found_number=1
+  fi
+done
+
+[[ "$found_json" -eq 1 ]] || {
+  echo "mock node missing --json" >&2
+  exit 1
+}
+[[ "$found_number" -eq 1 ]] || {
+  echo "mock node missing expected --number value" >&2
+  exit 1
+}
+
+case "$mode" in
+  success)
+    printf '%s\n' "${MOCK_NODE_JSON_OUTPUT:?}"
+    ;;
+  fail)
+    echo "${MOCK_NODE_ERROR_TEXT:?}" >&2
+    exit 1
+    ;;
+  *)
+    echo "unknown mock node mode: $mode" >&2
+    exit 1
+    ;;
+esac
+EOF
+chmod +x "$mock_bin_dir/node"
 
 success_cache_dir="$tmp_dir/cache-success"
 success_state_dir="$tmp_dir/state-success"
@@ -507,6 +569,61 @@ assert_contains "$live_success_output" "当前状态：" "CLI should print a cur
 assert_contains "$live_success_output" "当前状态：您送修的产品已到达维修中心" "CLI should normalize live MSI success responses into a current status line"
 assert_contains "$live_success_output" "页面高亮阶段：收件, 维修中" "CLI should report the furthest active workflow stage from live MSI success responses"
 assert_contains "$live_success_output" "相较上次：这是首次记录。" "CLI should treat the first live-style success response as an initial record"
+
+tracking_success_cache_dir="$tmp_dir/cache-tracking-success"
+tracking_success_state_dir="$tmp_dir/state-tracking-success"
+tracking_success_call_file="$tmp_dir/curl-tracking-success.count"
+tracking_success_node_call_file="$tmp_dir/node-tracking-success.log"
+tracking_success_output="$(
+  PATH="$mock_bin_dir:$PATH" \
+  MOCK_CURL_CALL_FILE="$tracking_success_call_file" \
+  MOCK_CURL_MODE="success_tracking" \
+  MOCK_CURL_STATE_DIR="$tmp_dir/mock-tracking-success" \
+  MOCK_FIXTURE_DIR="$FIXTURE_DIR" \
+  MOCK_EXPECTED_RMA="RMA-CLI-SHIP" \
+  MOCK_EXPECTED_SERIAL="SERIAL-CLI-SHIP" \
+  MOCK_EXPECTED_ANSWER="5566" \
+  MOCK_NODE_CALL_FILE="$tracking_success_node_call_file" \
+  MOCK_NODE_MODE="success" \
+  MOCK_NODE_EXPECTED_SCRIPT="$ROOT_DIR/skills/express-tracking/scripts/run.mjs" \
+  MOCK_NODE_EXPECTED_NUMBER="SF123456789CN" \
+  MOCK_NODE_JSON_OUTPUT='{"provider":"kuaidi100","number":"SF123456789CN","carrier":{"code":"shunfeng","source":"auto"},"state":{"code":"0","label":"在途"},"status":{"code":"200","message":"ok"},"latestEvent":{"time":"2026-04-23 10:20:00","context":"快件已到达上海转运中心"},"recentEvents":[{"time":"2026-04-23 10:20:00","context":"快件已到达上海转运中心"}]}' \
+  MSI_REPAIR_CACHE_DIR="$tracking_success_cache_dir" \
+  MSI_REPAIR_STATE_DIR="$tracking_success_state_dir" \
+  bash "$SCRIPT_PATH" --rma "RMA-CLI-SHIP" --serial "SERIAL-CLI-SHIP" --answer "5566" --no-open
+)"
+assert_contains "$tracking_success_output" "寄送单号：SF123456789CN" "CLI should report the MSI shipment number when present"
+assert_contains "$tracking_success_output" "物流补充：" "CLI should add a logistics supplement when express-tracking succeeds"
+assert_contains "$tracking_success_output" "当前物流状态：在途" "CLI should summarize the live logistics state"
+assert_contains "$tracking_success_output" "最新时间：2026-04-23 10:20:00" "CLI should include the latest logistics timestamp"
+assert_contains "$tracking_success_output" "最新轨迹：快件已到达上海转运中心" "CLI should include the latest logistics event"
+
+tracking_fallback_cache_dir="$tmp_dir/cache-tracking-fallback"
+tracking_fallback_state_dir="$tmp_dir/state-tracking-fallback"
+tracking_fallback_call_file="$tmp_dir/curl-tracking-fallback.count"
+tracking_fallback_node_call_file="$tmp_dir/node-tracking-fallback.log"
+tracking_fallback_output="$(
+  PATH="$mock_bin_dir:$PATH" \
+  MOCK_CURL_CALL_FILE="$tracking_fallback_call_file" \
+  MOCK_CURL_MODE="success_tracking" \
+  MOCK_CURL_STATE_DIR="$tmp_dir/mock-tracking-fallback" \
+  MOCK_FIXTURE_DIR="$FIXTURE_DIR" \
+  MOCK_EXPECTED_RMA="RMA-CLI-SHIP-FALLBACK" \
+  MOCK_EXPECTED_SERIAL="SERIAL-CLI-SHIP-FALLBACK" \
+  MOCK_EXPECTED_ANSWER="6677" \
+  MOCK_NODE_CALL_FILE="$tracking_fallback_node_call_file" \
+  MOCK_NODE_MODE="fail" \
+  MOCK_NODE_EXPECTED_SCRIPT="$ROOT_DIR/skills/express-tracking/scripts/run.mjs" \
+  MOCK_NODE_EXPECTED_NUMBER="SF123456789CN" \
+  MOCK_NODE_ERROR_TEXT="缺少 EXPRESS_TRACKING_KUAIDI100_KEY。" \
+  MSI_REPAIR_CACHE_DIR="$tracking_fallback_cache_dir" \
+  MSI_REPAIR_STATE_DIR="$tracking_fallback_state_dir" \
+  bash "$SCRIPT_PATH" --rma "RMA-CLI-SHIP-FALLBACK" --serial "SERIAL-CLI-SHIP-FALLBACK" --answer "6677" --no-open
+)"
+assert_contains "$tracking_fallback_output" "寄送单号：SF123456789CN" "CLI should still report the shipment number when express-tracking is misconfigured"
+assert_not_contains "$tracking_fallback_output" "物流补充：" "CLI should stay quiet about logistics progress when express-tracking fails"
+assert_not_contains "$tracking_fallback_output" "当前物流状态：" "CLI should not invent a logistics state when express-tracking fails"
+assert_not_contains "$tracking_fallback_output" "缺少 EXPRESS_TRACKING_KUAIDI100_KEY" "CLI should not leak express-tracking configuration errors into the MSI summary"
 
 stateful_cache_dir_1="$tmp_dir/cache-stateful-1"
 stateful_cache_dir_2="$tmp_dir/cache-stateful-2"

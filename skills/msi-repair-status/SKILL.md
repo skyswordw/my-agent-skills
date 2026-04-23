@@ -1,6 +1,6 @@
 ---
 name: msi-repair-status
-description: Query MSI China repair progress when a user provides an RMA number and product serial number, needs status interpretation from https://account.msi.cn/zh-Hans/services/inquiry-history, wants change comparison against the last successful result, or needs the required reminder wording when the status implies user action. Use it to fetch the captcha image, collect a user-confirmed captcha answer that may come from manual reading or auxiliary recognition, submit the query, and report the current status plus whether it changed since the last successful check.
+description: Query MSI China repair progress when a user provides an RMA number and product serial number, needs status interpretation from https://account.msi.cn/zh-Hans/services/inquiry-history, wants change comparison against the last successful result, or needs the required reminder wording when the status implies user action. Use it to fetch the captcha image, collect a user-confirmed captcha answer that may come from manual reading or auxiliary recognition, submit the query, and report the current status plus whether it changed since the last successful check. When MSI exposes a shipment number, surface it plainly and optionally enrich it through a local `express-tracking` skill.
 ---
 
 # MSI Repair Status
@@ -11,8 +11,10 @@ Use `scripts/msi-repair-query.sh` for MSI China repair-order lookups. Prefer thi
 
 - Query MSI China repair progress from an `RMA` number and product serial number.
 - Interpret the returned status text and the highlighted workflow stage from the success-page workflow widget.
+- Extract a shipment tracking number when MSI has already handed the package to a courier.
 - Compare the latest successful result against the previous successful result for the same `RMA + serial` pair.
 - Output the required reminder wording when the result implies user action.
+- If the local `express-tracking` skill is installed and configured, enrich a returned tracking number into a live logistics summary.
 
 ## Workflow
 
@@ -30,6 +32,8 @@ Use `scripts/msi-repair-query.sh` for MSI China repair-order lookups. Prefer thi
    - current status first
    - highlighted stage after the current status block
    - whether it changed since the last successful run
+   - shipment number whenever MSI exposes one in the shipping section
+   - live logistics enrichment only when local `express-tracking` is available, configured, and the lookup succeeds
    - the required reminder wording when the result implies user action
 
 ## Guardrails
@@ -40,6 +44,7 @@ Use `scripts/msi-repair-query.sh` for MSI China repair-order lookups. Prefer thi
 - An explicit CLI `--answer` is the non-interactive boundary for an already confirmed captcha answer.
 - If the site adds another verification step, blocks access, or the HTML shape changes enough that the script cannot extract `_token`, stop and explain the blocker plainly.
 - If the returned structure no longer matches the parsing assumptions, including when the success-page workflow widget exists but no highlighted `active` stage can be parsed, stop instead of guessing.
+- If a shipment number exists but `express-tracking` is missing or not configured, report the shipment number plainly and do not invent courier progress.
 - If the result mentions `待寄送`, `即将失效`, `已失效`, or any clear user-action requirement, repeat this reminder exactly:
   `维修单号 14 天内未寄回会失效，寄出前确认外观完好且产品条码、二维码清晰完整。`
 

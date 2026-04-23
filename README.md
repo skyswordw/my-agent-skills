@@ -54,5 +54,6 @@ _Generated from `catalog/skills.yaml` by `scripts/build-catalog.py`._
 - `msi-repair-status` (skills/msi-repair-status) - MSI Repair Status. Query MSI China repair progress with an RMA number and product serial number.
 - `captcha-auto-skill` (skills/captcha-auto-skill) - Captcha Auto Skill. Solve and submit captchas with local OCR first and a default DashScope fallback.
 - `codebase-to-course` (skills/codebase-to-course) - Codebase to Course. Turn a local repository into a multi-file offline course for non-technical learners.
+- `express-tracking` (skills/express-tracking) - Express Tracking. Track courier shipments with Kuaidi100 and return Chinese logistics summaries.
 
 <!-- END GENERATED SKILL CATALOG -->
