@@ -509,18 +509,50 @@ find_express_skill_dir() {
   return 1
 }
 
+run_with_timeout() {
+  local timeout_seconds="${1:?}"
+  shift
+
+  python3 - "$timeout_seconds" "$@" <<'PY'
+import subprocess
+import sys
+
+timeout_seconds = float(sys.argv[1])
+command = sys.argv[2:]
+
+try:
+    completed = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        timeout=timeout_seconds,
+        check=False,
+    )
+except subprocess.TimeoutExpired:
+    raise SystemExit(124)
+
+sys.stdout.write(completed.stdout)
+sys.stderr.write(completed.stderr)
+raise SystemExit(completed.returncode)
+PY
+}
+
 print_express_tracking_summary() {
   local tracking_no="$1"
   local express_skill_dir=""
   local express_json=""
   local express_summary=""
+  local express_timeout_seconds="${MSI_REPAIR_EXPRESS_TIMEOUT_SECONDS:-5}"
 
   echo "寄送单号：$tracking_no"
 
   command -v node >/dev/null 2>&1 || return 0
   express_skill_dir="$(find_express_skill_dir)" || return 0
 
-  if ! express_json="$(node "$express_skill_dir/scripts/run.mjs" --number="$tracking_no" --json 2>/dev/null)"; then
+  if ! express_json="$(
+    run_with_timeout "$express_timeout_seconds" \
+      node "$express_skill_dir/scripts/run.mjs" --number="$tracking_no" --json 2>/dev/null
+  )"; then
     return 0
   fi
 

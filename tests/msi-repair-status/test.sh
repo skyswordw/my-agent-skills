@@ -38,6 +38,15 @@ assert_not_contains() {
   fi
 }
 
+assert_less_than() {
+  local actual="$1"
+  local ceiling="$2"
+  local message="$3"
+  if (( actual >= ceiling )); then
+    fail "$message: expected [$actual] to be less than [$ceiling]"
+  fi
+}
+
 assert_line_before() {
   local text="$1"
   local first="$2"
@@ -410,6 +419,10 @@ case "$mode" in
   success)
     printf '%s\n' "${MOCK_NODE_JSON_OUTPUT:?}"
     ;;
+  hang)
+    sleep "${MOCK_NODE_HANG_SECONDS:?}"
+    printf '%s\n' "${MOCK_NODE_JSON_OUTPUT:?}"
+    ;;
   fail)
     echo "${MOCK_NODE_ERROR_TEXT:?}" >&2
     exit 1
@@ -624,6 +637,37 @@ assert_contains "$tracking_fallback_output" "寄送单号：SF123456789CN" "CLI 
 assert_not_contains "$tracking_fallback_output" "物流补充：" "CLI should stay quiet about logistics progress when express-tracking fails"
 assert_not_contains "$tracking_fallback_output" "当前物流状态：" "CLI should not invent a logistics state when express-tracking fails"
 assert_not_contains "$tracking_fallback_output" "缺少 EXPRESS_TRACKING_KUAIDI100_KEY" "CLI should not leak express-tracking configuration errors into the MSI summary"
+
+tracking_timeout_cache_dir="$tmp_dir/cache-tracking-timeout"
+tracking_timeout_state_dir="$tmp_dir/state-tracking-timeout"
+tracking_timeout_call_file="$tmp_dir/curl-tracking-timeout.count"
+tracking_timeout_node_call_file="$tmp_dir/node-tracking-timeout.log"
+tracking_timeout_start_ms="$(python3 -c 'import time; print(int(time.time() * 1000))')"
+tracking_timeout_output="$(
+  PATH="$mock_bin_dir:$PATH" \
+  MOCK_CURL_CALL_FILE="$tracking_timeout_call_file" \
+  MOCK_CURL_MODE="success_tracking" \
+  MOCK_CURL_STATE_DIR="$tmp_dir/mock-tracking-timeout" \
+  MOCK_FIXTURE_DIR="$FIXTURE_DIR" \
+  MOCK_EXPECTED_RMA="RMA-CLI-SHIP-TIMEOUT" \
+  MOCK_EXPECTED_SERIAL="SERIAL-CLI-SHIP-TIMEOUT" \
+  MOCK_EXPECTED_ANSWER="7788" \
+  MOCK_NODE_CALL_FILE="$tracking_timeout_node_call_file" \
+  MOCK_NODE_MODE="hang" \
+  MOCK_NODE_EXPECTED_SCRIPT="$ROOT_DIR/skills/express-tracking/scripts/run.mjs" \
+  MOCK_NODE_EXPECTED_NUMBER="SF123456789CN" \
+  MOCK_NODE_HANG_SECONDS="4" \
+  MOCK_NODE_JSON_OUTPUT='{"provider":"kuaidi100","number":"SF123456789CN","carrier":{"code":"shunfeng","source":"auto"},"state":{"code":"0","label":"在途"},"status":{"code":"200","message":"ok"},"latestEvent":{"time":"2026-04-23 10:20:00","context":"快件已到达上海转运中心"},"recentEvents":[{"time":"2026-04-23 10:20:00","context":"快件已到达上海转运中心"}]}' \
+  MSI_REPAIR_CACHE_DIR="$tracking_timeout_cache_dir" \
+  MSI_REPAIR_STATE_DIR="$tracking_timeout_state_dir" \
+  MSI_REPAIR_EXPRESS_TIMEOUT_SECONDS="1" \
+  bash "$SCRIPT_PATH" --rma "RMA-CLI-SHIP-TIMEOUT" --serial "SERIAL-CLI-SHIP-TIMEOUT" --answer "7788" --no-open
+)"
+tracking_timeout_end_ms="$(python3 -c 'import time; print(int(time.time() * 1000))')"
+tracking_timeout_elapsed_ms="$((tracking_timeout_end_ms - tracking_timeout_start_ms))"
+assert_contains "$tracking_timeout_output" "寄送单号：SF123456789CN" "CLI should still report the shipment number when express-tracking times out"
+assert_not_contains "$tracking_timeout_output" "物流补充：" "CLI should skip logistics enrichment when express-tracking times out"
+assert_less_than "$tracking_timeout_elapsed_ms" 3000 "CLI should not wait for a hung express-tracking subprocess"
 
 stateful_cache_dir_1="$tmp_dir/cache-stateful-1"
 stateful_cache_dir_2="$tmp_dir/cache-stateful-2"
